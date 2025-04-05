@@ -67,24 +67,77 @@ Beberapa perubahan terbaru pada aplikasi:
 
 ##  Cara Penggunaan
 
-### Instalasi
+## Instalasi dan Menjalankan Aplikasi dengan PM2
 
 1.  **Clone repositori**
     ```bash
-    git clone [https://github.com/FlowFalcon/music-player.git](https://github.com/FlowFalcon/music-player.git)
+    git clone [https://github.com/Nauvalunesa/flowmusicpy.git](https://github.com/Nauvalunesa/flowmusicpy.git)
     ```
 2.  **Buka folder proyek**
     ```bash
-    cd music-player
+    cd flowmusicpy
     ```
-3.  **Jalankan aplikasi**
-    -   Jalankan backend FastAPI:
+3.  **Instalasi dependensi (Opsional tetapi disarankan)**
+    * Jika proyek memiliki file `requirements.txt` di folder `backend`, instal dependensi Python:
         ```bash
         cd backend
-        uvicorn main:app --reload
+        pip install -r requirements.txt
+        cd ..
         ```
-    -   Buka file `frontend/index.html` di browser web favorit Anda, atau
-    -   Gunakan server lokal seperti Live Server extension di VSCode.
+    * Jika menggunakan Node.js untuk frontend, instal dependensi Node.js di folder `frontend`
+        ```bash
+        cd frontend
+        npm install
+        cd ..
+        ```
+4.  **Menjalankan aplikasi dengan PM2**
+    * Instal PM2 secara global (jika belum terinstal):
+        ```bash
+        npm install -g pm2
+        ```
+    * Jalankan backend FastAPI menggunakan PM2:
+        ```bash
+        cd backend
+        pm2 start "python3 -m uvicorn main:app --host 0.0.0.0 --port 8000" --name fastapi
+        cd ..
+        ```
+    * Buka file `frontend/index.html` di browser web favorit Anda, atau
+    * Gunakan server lokal seperti Live Server extension di VSCode.
+    * Jika menggunakan Node.js untuk frontend, anda bisa menjalankan server node.js dengan perintah `npm run dev` atau `npm run build` dan kemudian di serve menggunakan server statis. contoh:
+        ```bash
+        cd frontend
+        npm run dev
+        cd ..
+        ```
+        atau
+        ```bash
+        cd frontend
+        npm run build
+        npx serve dist
+        cd ..
+        ```
+5.  **Pengelolaan PM2 (Opsional)**
+    * Untuk melihat daftar proses PM2:
+        ```bash
+        pm2 list
+        ```
+    * Untuk melihat log aplikasi FastAPI:
+        ```bash
+        pm2 logs fastapi
+        ```
+    * Untuk menghentikan aplikasi FastAPI:
+        ```bash
+        pm2 stop fastapi
+        ```
+    * Untuk memulai ulang aplikasi FastAPI:
+        ```bash
+        pm2 restart fastapi
+        ```
+    * Untuk menghapus aplikasi FastAPI dari PM2:
+        ```bash
+        pm2 delete fastapi
+        ```
+
 
 ### Penggunaan
 
