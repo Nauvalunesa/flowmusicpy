@@ -1,11 +1,13 @@
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 import random
 import requests
 from backend.config import API_URL, APP_DEFAULTS, format_time, needs_scrolling, format_song, format_search_results, get_download_url
+from pathlib import Path
 
 app = FastAPI(
     title="Music Player API",
@@ -32,6 +34,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Menambahkan middleware untuk file statis
+app.mount("/static", StaticFiles(directory="."), name="static")
+
 # Model Data
 class Song(BaseModel):
     id: str
@@ -46,14 +51,23 @@ class DownloadResponse(BaseModel):
     status: bool
 
 # State Aplikasi
-recently_played = []
-current_playlist = []
-current_song_index = 0
-is_playing = False
-is_shuffle = False
-is_repeat = False
+recently_played: List[Song] = [] # Menggunakan List[Song]
+current_playlist: List[Song] = [] # Menggunakan List[Song]
+current_song_index: int = 0
+is_playing: bool = False
+is_shuffle: bool = False
+is_repeat: bool = False
 
 # Endpoint API
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    """Menampilkan index.html ketika mengakses root."""
+    index_path = Path("index.html")
+    if not index_path.exists():
+        raise HTTPException(status_code=404, detail="index.html not found")
+    with open(index_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.get("/search", tags=["Songs"], description="Mencari lagu berdasarkan query.")
 async def search_songs(query: str):
@@ -66,8 +80,8 @@ async def search_songs(query: str):
             return JSONResponse(content={"status": False, "data": []})
 
         global current_playlist
-        current_playlist = format_search_results(data["data"])
-        return JSONResponse(content={"status": True, "data": current_playlist})
+        current_playlist = [Song(**item) for item in format_search_results(data["data"])] # Mengubah dictionary menjadi objek Song
+        return JSONResponse(content={"status": True, "data": [song.dict() for song in current_playlist]}) # Mengubah objek Song menjadi dictionary sebelum dikirim
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=f"Error fetching search results: {e}")
 
@@ -158,4 +172,4 @@ async def download_current_song(index: int):
         raise HTTPException(status_code=500, detail="Failed to get download URL")
 
     return JSONResponse(content={"download_url": download_response.data["dl"]})
-      
+                                   
